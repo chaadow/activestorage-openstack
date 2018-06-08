@@ -1,0 +1,28 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	0.0.0	/9ea78ad/
+ActiveStorage	lib/active_storage/openstack.rb	/^module ActiveStorage$/;"	m
+ActiveStorage	lib/active_storage/openstack/railtie.rb	/^module ActiveStorage$/;"	m
+ActiveStorage	lib/active_storage/openstack/version.rb	/^module ActiveStorage$/;"	m
+ActiveStorage	lib/active_storage/service/open_stack_service.rb	/^module ActiveStorage$/;"	m
+OpenStackService	lib/active_storage/service/open_stack_service.rb	/^  class Service::OpenStackService < Service$/;"	c	module:ActiveStorage.Service
+Openstack	lib/active_storage/openstack.rb	/^  module Openstack$/;"	m	module:ActiveStorage
+Openstack	lib/active_storage/openstack/railtie.rb	/^  module Openstack$/;"	m	module:ActiveStorage
+Openstack	lib/active_storage/openstack/version.rb	/^  module Openstack$/;"	m	module:ActiveStorage
+Railtie	lib/active_storage/openstack/railtie.rb	/^    class Railtie < ::Rails::Railtie$/;"	c	module:ActiveStorage.Openstack
+VERSION	lib/active_storage/openstack/version.rb	/^    VERSION = '0.1.0'$/;"	c
+convert_to_base64_digest	lib/active_storage/service/open_stack_service.rb	/^  def convert_to_base64_digest(hex_digest)$/;"	f	module:ActiveStorage
+delete	lib/active_storage/service/open_stack_service.rb	/^  def delete(key)$/;"	f	module:ActiveStorage
+download	lib/active_storage/service/open_stack_service.rb	/^  def download(key)$/;"	f	module:ActiveStorage
+exist?	lib/active_storage/service/open_stack_service.rb	/^  def exist?(key)$/;"	f	module:ActiveStorage
+file_for	lib/active_storage/service/open_stack_service.rb	/^  def file_for(key)$/;"	f	module:ActiveStorage
+headers_for_direct_upload	lib/active_storage/service/open_stack_service.rb	/^  def headers_for_direct_upload(_key, content_type:, content_length:, checksum:, **)$/;"	f	module:ActiveStorage
+initialize	lib/active_storage/service/open_stack_service.rb	/^  def initialize(container:, credentials:, connection_options: {})$/;"	f	class:ActiveStorage.OpenStackService
+unix_timestamp_expires_at	lib/active_storage/service/open_stack_service.rb	/^  def unix_timestamp_expires_at(seconds_from_now)$/;"	f	module:ActiveStorage
+upload	lib/active_storage/service/open_stack_service.rb	/^  def upload(key, io, checksum: nil)$/;"	f	module:ActiveStorage
+url	lib/active_storage/service/open_stack_service.rb	/^  def url(key, expires_in:, disposition:, filename:, content_type:)$/;"	f	module:ActiveStorage
+url_for_direct_upload	lib/active_storage/service/open_stack_service.rb	/^  def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)$/;"	f	module:ActiveStorage
