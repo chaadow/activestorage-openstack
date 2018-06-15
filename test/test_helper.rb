@@ -19,3 +19,14 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "/files"
   ActiveSupport::TestCase.fixtures :all
 end
+
+require 'yaml'
+
+SERVICE_CONFIGURATIONS = begin
+  erb = ERB.new(Pathname.new(File.expand_path("configurations.yml", __dir__)).read)
+  configuration = YAML.load(erb.result) || {}
+  configuration.deep_symbolize_keys
+rescue Errno::ENOENT
+  puts "Missing service configuration file in test/service/configurations.yml"
+  {}
+end
