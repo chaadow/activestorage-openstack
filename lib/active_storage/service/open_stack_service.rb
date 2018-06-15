@@ -1,4 +1,4 @@
-require "fog/openstack"
+require 'fog/openstack'
 
   module ActiveStorage
     class Service::OpenStackService < Service
@@ -10,14 +10,13 @@ require "fog/openstack"
                    else
                      credentials
                    end
-
         @client = Fog::Storage::OpenStack.new(settings)
         @container = @client.directories.get(container)
       end
 
       def upload(key, io, checksum: nil)
-        instrument :upload, key, checksum: checksum do
-          file = container.files.create(key: key, body: io, etag: checksum)
+        instrument :upload, key: key, checksum: checksum do
+          file = container.files.create(key: key, body: io)
           file.reload
 
           if checksum.present? && convert_to_base64_digest(file.etag) != checksum
@@ -29,13 +28,18 @@ require "fog/openstack"
 
       def download(key)
         instrument :download, key do
-          file_for(key).body
+
+          File.open(key, 'w') do | f |
+            container.files.get(key) do | data, remaining, content_length |
+              f.syswrite data
+            end
+          end
         end
       end
 
       def delete(key)
         instrument :delete, key do
-          file_for(key).try(:destroy)
+          file_for(key).destroy
         end
       end
 
@@ -60,17 +64,19 @@ require "fog/openstack"
 
       def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
         instrument :url, key do |payload|
-          expire_at = unix_timestamp_expires_at(expires_in)
-          generated_url = client.create_temp_url(container.key, key, expire_at, 'PUT')
-
-          payload[:url] = generated_url
-
-          generated_url
+          # expire_at = unix_timestamp_expires_at(expires_in)
+          # generated_url = client.create_temp_url(container.key, key, expire_at, 'PUT')
+          #
+          # payload[:url] = generated_url
+          #
+          # generated_url
         end
       end
 
       def headers_for_direct_upload(_key, content_type:, content_length:, checksum:, **)
-        { 'Content-Type' => content_type, 'Etag' => checksum, 'Content-Length' => content_length }
+        { 'Content-Type' => content_type,
+          'Etag' => checksum, 'Content-Length' => content_length
+        }
       end
 
     private

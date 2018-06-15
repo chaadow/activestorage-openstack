@@ -1,4 +1,4 @@
-require "activestorage/openstack/railtie"
+require "active_storage/openstack/railtie"
 
 module ActiveStorage
   module Openstack
