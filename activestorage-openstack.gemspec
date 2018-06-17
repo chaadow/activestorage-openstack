@@ -5,13 +5,14 @@ require "active_storage/openstack/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
+  s.platform    = Gem::Platform::RUBY
   s.name        = "activestorage-openstack"
   s.version     = ActiveStorage::Openstack::VERSION
-  s.authors     = ["chaadow"]
-  s.email       = ["chaadow@msn.com"]
-  s.homepage    = "http://google.com"
-  s.summary     = "Summary of ActiveStorage::Openstack."
-  s.description = "Description of ActiveStorage::Openstack."
+  s.author     = ["Chedli Bourguiba"]
+  s.email       = ["bourguiba.chedli@gmail.com"]
+  s.homepage    = "https://github.com/chaadow/activestorage-openstack"
+  s.summary     = "ActiveStorage wrapper for OpenStack Storage"
+  s.description = "Wraps the OpenStack Swift/Storage service as an Active Storage service"
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
@@ -19,5 +20,7 @@ Gem::Specification.new do |s|
  s.add_dependency "fog-openstack"
  s.add_dependency "mime-types"
 
+
   s.add_development_dependency "sqlite3"
+  s.add_development_dependency "rails", "~> 5.2.0"
 end
