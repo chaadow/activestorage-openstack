@@ -27,6 +27,6 @@ SERVICE_CONFIGURATIONS = begin
   configuration = YAML.load(erb.result) || {}
   configuration.deep_symbolize_keys
 rescue Errno::ENOENT
-  puts "Missing service configuration file in test/service/configurations.yml"
+  puts "Missing service configuration file in test/configurations.yml"
   {}
 end
