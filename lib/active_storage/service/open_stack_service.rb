@@ -1,5 +1,5 @@
 require 'fog/openstack'
-
+require 'open-uri'
   module ActiveStorage
     class Service::OpenStackService < Service
       attr_reader :client, :container
@@ -11,50 +11,75 @@ require 'fog/openstack'
                      credentials
                    end
         @client = Fog::Storage::OpenStack.new(settings)
-        @container = @client.directories.get(container)
+        @container = Fog::OpenStack.escape(container)
       end
 
       def upload(key, io, checksum: nil)
         instrument :upload, key: key, checksum: checksum do
-          file = container.files.create(key: key, body: io)
-          file.reload
-
-          if checksum.present? && convert_to_base64_digest(file.etag) != checksum
-            file.destroy
+          params = {}.merge(etag: convert_base64digest_to_hexdigest(checksum))
+          begin
+            client.put_object(container, key, io, params)
+          rescue Excon::Error::UnprocessableEntity
             raise ActiveStorage::IntegrityError
           end
         end
       end
 
-      def download(key)
-        instrument :download, key do
-
-          File.open(key, 'w') do | f |
-            container.files.get(key) do | data, remaining, content_length |
-              f.syswrite data
-            end
+      def download(key, &block)
+        if block_given?
+          instrument :streaming_download, key: key do
+            object_for(key, &block).body
+          end
+        else
+          instrument :download, key: key do
+            object_for(key).body
           end
         end
       end
 
+      def download_chunk(key, range)
+        instrument :download_chunk, key: key, range: range do
+          object_for(key).body[range]
+        end
+      end
+
+
       def delete(key)
-        instrument :delete, key do
-          file_for(key).destroy
+        instrument :delete, key: key do
+          begin
+            client.delete_object(container, key)
+          rescue Fog::Storage::OpenStack::NotFound
+            false
+          end
+        end
+      end
+
+      def delete_prefixed(prefix)
+        instrument :delete, prefix: prefix do
+          directory = client.directories.get(container)
+          filtered_files = client.files(directory: directory, prefix: prefix)
+          filtered_files = filtered_files.map(&:key)
+
+          client.delete_multiple_objects(container, filtered_files)
         end
       end
 
       def exist?(key)
-        instrument :exist, key do |payload|
-          answer = file_for(key).present?
-          payload[:exist] = answer
-          answer
+        instrument :exist, key: key do |payload|
+          begin
+            answer = object_for(key)
+            payload[:exist] = answer
+          rescue Fog::Storage::OpenStack::NotFound
+            payload[:exist] = false
+          end
         end
       end
 
       def url(key, expires_in:, disposition:, filename:, content_type:)
-        instrument :url, key do |payload|
+        instrument :url, key: key do |payload|
           expire_at = unix_timestamp_expires_at(expires_in)
-          generated_url = file_for(key).url(expire_at)
+
+          generated_url = client.get_object_https_url(container, key, expire_at, disposition: disposition, filename: filename, content_type: content_type)
 
           payload[:url] = generated_url
 
@@ -63,34 +88,52 @@ require 'fog/openstack'
       end
 
       def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
-        instrument :url, key do |payload|
-          # expire_at = unix_timestamp_expires_at(expires_in)
-          # generated_url = client.create_temp_url(container.key, key, expire_at, 'PUT')
-          #
-          # payload[:url] = generated_url
-          #
-          # generated_url
+        instrument :url, key: key do |payload|
+          expire_at = unix_timestamp_expires_at(expires_in)
+          generated_url = client.create_temp_url(container,
+                                                 key,
+                                                 expire_at,
+                                                 'PUT',
+                                                 port: 443,
+                                                 scheme: "https",
+                                                 content_type: content_type,
+                                                 content_length: content_length,
+                                                 etag: convert_base64digest_to_hexdigest(checksum))
+
+          payload[:url] = generated_url
+
+          generated_url
         end
       end
 
-      def headers_for_direct_upload(_key, content_type:, content_length:, checksum:, **)
-        { 'Content-Type' => content_type,
-          'Etag' => checksum, 'Content-Length' => content_length
+      def headers_for_direct_upload(key, content_type:, content_length:, checksum:)
+        {
+          'Content-Type' => content_type,
+          'Etag' => convert_base64digest_to_hexdigest(checksum),
+          'Content-Length' => content_length
         }
       end
 
     private
 
+      def object_for(key, &block)
+        client.get_object(container, key, &block)
+      end
+
+      # ActiveStorage sends a `Digest::MD5.base64digest` checksum
+      # OpenStack expects a `Digest::MD5.hexdigest` Etag
+      def convert_base64digest_to_hexdigest(base64digest)
+        base64digest.unpack('m0').first.unpack('H*').first if base64digest
+      end
+
       def unix_timestamp_expires_at(seconds_from_now)
-        Time.current.advance(seconds: seconds_from_now).to_i
+        Time.zone.now.advance(seconds: seconds_from_now).to_i
       end
 
-      def file_for(key)
-        container.files.get(key)
+      def format_range(range)
+        " bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}"
       end
 
-      def convert_to_base64_digest(hex_digest)
-        [[hex_digest].pack('H*')].pack('m0')
-      end
+
     end
   end
