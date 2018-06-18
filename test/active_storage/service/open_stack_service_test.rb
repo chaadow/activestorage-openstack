@@ -31,14 +31,15 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
-
     test "uploading without integrity" do
       begin
         key  = SecureRandom.base58(24)
         data = "Some random string!"
 
         assert_raises(ActiveStorage::IntegrityError) do
-          @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest("bad string"))
+          @service.upload(key,
+                          StringIO.new(data),
+                          checksum: Digest::MD5.base64digest("bad string"))
         end
 
         assert_not @service.exist?(key)
@@ -54,7 +55,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
     test "downloading in chunks" do
       key = SecureRandom.base58(24)
       chunk_size = @service.client.instance_values["connection_options"][:chunk_size] || 1.megabyte # default for OpenStack
-      expected_chunks = [ "a" * chunk_size, "b" ]
+      expected_chunks = ["a" * chunk_size, "b"]
       actual_chunks = []
 
       begin
@@ -69,6 +70,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
         @service.delete key
       end
     end
+
     test "downloading partially" do
       assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19..21)
       assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19...22)
@@ -76,11 +78,11 @@ if SERVICE_CONFIGURATIONS[:openstack]
 
     test "signed URL generation" do
       url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
-                         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
+                                      disposition: :inline,
+                                      filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
 
       assert_match SERVICE_CONFIGURATIONS[:openstack][:container], url
     end
-
 
     test "direct upload" do
       begin
@@ -111,7 +113,6 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
-
     test "existing" do
       assert @service.exist?(FIXTURE_KEY)
       assert_not @service.exist?(FIXTURE_KEY + "abc")
@@ -122,11 +123,9 @@ if SERVICE_CONFIGURATIONS[:openstack]
       assert_not @service.exist?(FIXTURE_KEY)
     end
 
-
     test "deleting nonexistent key" do
       assert_not @service.delete SecureRandom.base58(24)
     end
-
 
     test "deleting by prefix" do
       begin
@@ -139,7 +138,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
         assert_not @service.exist?("a/a/a")
         assert_not @service.exist?("a/a/b")
 
-        assert  @service.exist?("a/b/a")
+        assert @service.exist?("a/b/a")
       ensure
         @service.delete("a/a/a")
         @service.delete("a/a/b")

@@ -43,7 +43,6 @@ module ActiveStorage
       end
     end
 
-
     def delete(key)
       instrument :delete, key: key do
         begin
@@ -78,9 +77,12 @@ module ActiveStorage
     def url(key, expires_in:, disposition:, filename:, content_type:)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
-
-        generated_url = client.get_object_https_url(container, key, expire_at, disposition: disposition, filename: filename, content_type: content_type)
-
+        generated_url = client.get_object_https_url(container,
+                                                    key,
+                                                    expire_at,
+                                                    disposition: disposition,
+                                                    filename: filename,
+                                                    content_type: content_type)
         payload[:url] = generated_url
 
         generated_url
@@ -127,7 +129,7 @@ module ActiveStorage
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
-      Time.zone.now.advance(seconds: seconds_from_now).to_i
+      Time.current.advance(seconds: seconds_from_now).to_i
     end
 
     def format_range(range)
