@@ -31,7 +31,7 @@ module ActiveStorage
     def download(key, &block)
       if block_given?
         instrument :streaming_download, key: key do
-          object_for(key, &block).body
+          object_for(key, &block)
         end
       else
         instrument :download, key: key do
@@ -42,7 +42,13 @@ module ActiveStorage
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        object_for(key).body[range]
+        chunk_buffer = []
+
+        object_for(key) do |chunk|
+          chunk_buffer << chunk
+        end
+
+        chunk_buffer.join[range]
       end
     end
 
@@ -67,7 +73,7 @@ module ActiveStorage
     def exist?(key)
       instrument :exist, key: key do |payload|
         answer = object_for(key)
-        payload[:exist] = answer
+        payload[:exist] = answer.present?
       rescue Fog::Storage::OpenStack::NotFound
         payload[:exist] = false
       end
