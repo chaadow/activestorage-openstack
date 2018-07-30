@@ -16,7 +16,10 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
-        params = {}.merge(etag: convert_base64digest_to_hexdigest(checksum))
+        params = {
+          "Content-Type" => guess_content_type(io),
+          "ETag" => convert_base64digest_to_hexdigest(checksum)
+        }
         begin
           client.put_object(container, key, io, params)
         rescue Excon::Error::UnprocessableEntity
@@ -74,15 +77,14 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, disposition:, filename:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
-        generated_url = client.get_object_https_url(container,
-                                                    key,
-                                                    expire_at,
-                                                    disposition: disposition,
-                                                    filename: filename,
-                                                    content_type: content_type)
+        generated_url = client.get_object_https_url(container, key, expire_at) 
+        generated_url += "&inline" if (disposition.to_s != 'attachment')
+        generated_url += "&filename=#{Fog::OpenStack.escape(filename.to_s)}" unless filename.nil?
+        # unfortunally OpenStack Swift cannot overwrite the content type of an object via a temp url
+        # so we just ignore the content_type argument here
         payload[:url] = generated_url
 
         generated_url
@@ -97,10 +99,7 @@ module ActiveStorage
                                                expire_at,
                                                'PUT',
                                                port: 443,
-                                               scheme: "https",
-                                               content_type: content_type,
-                                               content_length: content_length,
-                                               etag: convert_base64digest_to_hexdigest(checksum))
+                                               scheme: "https")
 
         payload[:url] = generated_url
 
@@ -108,12 +107,23 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, content_length:, checksum:)
+    def headers_for_direct_upload(key, content_type:, checksum:, **)
       {
         'Content-Type' => content_type,
-        'Etag' => convert_base64digest_to_hexdigest(checksum),
-        'Content-Length' => content_length
+        'ETag' => convert_base64digest_to_hexdigest(checksum)
       }
+    end
+
+    # Non-standard method to change the content type of an existing object
+    def change_content_type(key, content_type)
+      begin
+        client.post_object(container, key, {
+          'Content-Type' => content_type
+        })
+        true
+      rescue Fog::Storage::OpenStack::NotFound
+        false
+      end
     end
 
     private
@@ -123,7 +133,7 @@ module ActiveStorage
     end
 
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
-    # OpenStack expects a `Digest::MD5.hexdigest` Etag
+    # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
       base64digest.unpack('m0').first.unpack('H*').first if base64digest
     end
@@ -136,6 +146,8 @@ module ActiveStorage
       " bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}"
     end
 
-
+    def guess_content_type(io)
+      Marcel::MimeType.for io, name: io.try(:original_filename), declared_type: io.try(:content_type)
+    end
   end
 end
