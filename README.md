@@ -59,9 +59,9 @@ The next version of this plugin, will add a rails generator, or expose a method 
 
 ## `ActiveStorage::Openstack`'s Content-Type handling
 
-OpenStack Swift handles the Content-Type of an object differently from other object storage services. You cannot overwrite the Content-Type via a temp URL. This gem will try very hard to set the right Content-Type for an object at object creation (eigther via server upload or direct upload) but this is wrong in edge cases (e.g. you use direct upload and the browser provides a wrong mime type).
+OpenStack Swift handles the Content-Type of an object differently from other object storage services. You cannot overwrite the Content-Type via a temp URL. This gem will try very hard to set the right Content-Type for an object at object creation (either via server upload or direct upload) but this is wrong in some edge cases (e.g. you use direct upload and the browser provides a wrong mime type).
 
-For this edge cases `ActiveStorage::Blob::Identifiable` downloads the first 4K of a file, identifies the content type and saves the result in the database. For `ActiveStorage::Openstack` we also need to update the Content-Type of the object. This is done automatically with a little monkey patch.
+For these edge cases `ActiveStorage::Blob::Identifiable` downloads the first 4K of a file, identifies the content type and saves the result in the database. For `ActiveStorage::Openstack` we also need to update the Content-Type of the object. This is done automatically with a little monkey patch.
 
 ## Testing
 First, run `bundle` to install the gem dependencies (both development and production)
