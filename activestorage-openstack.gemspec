@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
- s.add_dependency "fog-openstack"
+ s.add_dependency "fog-openstack", '~> 0.1.27'
  s.add_dependency "mime-types"
  s.add_dependency "marcel"
 
