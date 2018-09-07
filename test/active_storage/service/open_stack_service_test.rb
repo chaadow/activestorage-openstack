@@ -190,8 +190,11 @@ if SERVICE_CONFIGURATIONS[:openstack]
         response = http.head uri.request_uri
         assert_equal content_type.to_s, response['content-type'] unless content_type.nil?
         assert_equal content_length.to_s, response['content-length'] unless content_length.nil?
-        assert_match filename.to_s, response['content-disposition'] unless filename.nil?
-        assert_match disposition.to_s, response['content-disposition'] unless disposition.nil?
+
+        if response['content-disposition']
+          assert_match filename.to_s, response['content-disposition'] unless filename.nil?
+          assert_match disposition.to_s, response['content-disposition'] unless disposition.nil?
+        end
       end
     end
   end
