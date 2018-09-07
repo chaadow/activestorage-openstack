@@ -104,7 +104,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
                                              content_type: "text/plain",
                                              content_length: data.bytesize,
                                              checksum: checksum)
-        headers = @service.headers_for_direct_upload(key, 
+        headers = @service.headers_for_direct_upload(key,
                                                      filename: ActiveStorage::Filename.new("something.txt"),
                                                      content_type: "text/plain",
                                                      content_length: data.bytesize,
@@ -124,8 +124,8 @@ if SERVICE_CONFIGURATIONS[:openstack]
         assert_equal data, @service.download(key)
 
         url = @service.url(key, expires_in: 5.minutes,
-                           disposition: :attachment,
-                           filename: ActiveStorage::Filename.new("something.txt"), content_type: "text/plain")
+                                disposition: :attachment,
+                                filename: ActiveStorage::Filename.new("something.txt"), content_type: "text/plain")
         asset_metadata url, content_type: "text/plain", content_length: data.bytesize, filename: "something.txt", disposition: "attachment"
       ensure
         @service.delete key
@@ -171,13 +171,13 @@ if SERVICE_CONFIGURATIONS[:openstack]
         @service.upload(key, StringIO.new(FIXTURE_DATA))
         @service.change_content_type(key, "text/plain")
         url = @service.url(key, expires_in: 5.minutes,
-                           disposition: :attachment,
-                           filename: ActiveStorage::Filename.new("something.txt"))
+                                disposition: :attachment,
+                                filename: ActiveStorage::Filename.new("something.txt"))
         asset_metadata url, content_type: "text/plain"
         @service.change_content_type(key, "application/octet-stream")
         url = @service.url(key, expires_in: 5.minutes,
-                           disposition: :attachment,
-                           filename: ActiveStorage::Filename.new("something.txt"))
+                                disposition: :attachment,
+                                filename: ActiveStorage::Filename.new("something.txt"))
         asset_metadata url, content_type: "application/octet-stream"
       ensure
         @service.delete(key)

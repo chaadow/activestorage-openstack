@@ -17,8 +17,8 @@ module ActiveStorage
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
         params = {
-          "Content-Type" => guess_content_type(io),
-          "ETag" => convert_base64digest_to_hexdigest(checksum)
+          'Content-Type' => guess_content_type(io),
+          'ETag' => convert_base64digest_to_hexdigest(checksum)
         }
         begin
           client.put_object(container, key, io, params)
@@ -48,11 +48,9 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        begin
-          client.delete_object(container, key)
-        rescue Fog::Storage::OpenStack::NotFound
-          false
-        end
+        client.delete_object(container, key)
+      rescue Fog::Storage::OpenStack::NotFound
+        false
       end
     end
 
@@ -68,22 +66,20 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        begin
-          answer = object_for(key)
-          payload[:exist] = answer
-        rescue Fog::Storage::OpenStack::NotFound
-          payload[:exist] = false
-        end
+        answer = object_for(key)
+        payload[:exist] = answer
+      rescue Fog::Storage::OpenStack::NotFound
+        payload[:exist] = false
       end
     end
 
     def url(key, expires_in:, disposition:, filename:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
-        generated_url = client.get_object_https_url(container, key, expire_at) 
-        generated_url += "&inline" if (disposition.to_s != 'attachment')
+        generated_url = client.get_object_https_url(container, key, expire_at)
+        generated_url += '&inline' if disposition.to_s != 'attachment'
         generated_url += "&filename=#{Fog::OpenStack.escape(filename.to_s)}" unless filename.nil?
-        # unfortunally OpenStack Swift cannot overwrite the content type of an object via a temp url
+        # unfortunately OpenStack Swift cannot overwrite the content type of an object via a temp url
         # so we just ignore the content_type argument here
         payload[:url] = generated_url
 
@@ -91,7 +87,7 @@ module ActiveStorage
       end
     end
 
-    def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
+    def url_for_direct_upload(key, expires_in:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
         generated_url = client.create_temp_url(container,
@@ -99,7 +95,7 @@ module ActiveStorage
                                                expire_at,
                                                'PUT',
                                                port: 443,
-                                               scheme: "https")
+                                               scheme: 'https')
 
         payload[:url] = generated_url
 
@@ -107,7 +103,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
+    def headers_for_direct_upload(_key, content_type:, checksum:, **)
       {
         'Content-Type' => content_type,
         'ETag' => convert_base64digest_to_hexdigest(checksum)
@@ -116,17 +112,15 @@ module ActiveStorage
 
     # Non-standard method to change the content type of an existing object
     def change_content_type(key, content_type)
-      begin
-        client.post_object(container, key, {
-          'Content-Type' => content_type
-        })
-        true
-      rescue Fog::Storage::OpenStack::NotFound
-        false
-      end
+      client.post_object(container,
+                         key,
+                         'Content-Type' => content_type)
+      true
+    rescue Fog::Storage::OpenStack::NotFound
+      false
     end
 
-    private
+  private
 
     def object_for(key, &block)
       client.get_object(container, key, &block)
@@ -135,7 +129,7 @@ module ActiveStorage
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
     # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
-      base64digest.unpack('m0').first.unpack('H*').first if base64digest
+      base64digest&.unpack1('m0')&.unpack1('H*')
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
@@ -147,7 +141,9 @@ module ActiveStorage
     end
 
     def guess_content_type(io)
-      Marcel::MimeType.for io, name: io.try(:original_filename), declared_type: io.try(:content_type)
+      Marcel::MimeType.for io,
+                           name: io.try(:original_filename),
+                           declared_type: io.try(:content_type)
     end
   end
 end
