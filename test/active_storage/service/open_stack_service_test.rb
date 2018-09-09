@@ -48,6 +48,21 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
+    test "Computing automatically a checksum on #upload when no checksum is provided" do
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Some random string!"
+        expected_checksum = Digest::MD5.hexdigest(data)
+
+        response = @service.upload(key, StringIO.new(data))
+
+        assert_equal data, @service.download(key)
+        assert_equal expected_checksum, response.headers["ETag"]
+      ensure
+        @service.delete key
+      end
+    end
+
     test "downloading" do
       assert_equal FIXTURE_DATA, @service.download(FIXTURE_KEY)
     end

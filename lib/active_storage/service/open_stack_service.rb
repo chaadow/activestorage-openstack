@@ -16,8 +16,8 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
-        params = { 'Content-Type' => guess_content_type(io) }
-        params['ETag'] = convert_base64digest_to_hexdigest(checksum) if checksum
+        params = { 'Content-Type' => guess_content_type(io),
+                   'ETag' => compute_checksum(checksum: checksum, io: io) }
 
         begin
           client.put_object(container, key, io, params)
@@ -131,10 +131,28 @@ module ActiveStorage
       client.get_object(container, key, &block)
     end
 
+    # If a checksum is provided then we convert it to a `Digest::MD5.hexdigest`
+    # Otherwise we compute it into one from the `io`
+    def compute_checksum(checksum: nil, io:)
+      checksum ? convert_base64digest_to_hexdigest(checksum) : compute_checksum_in_chunks(io)
+    end
+
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
     # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
       base64digest&.unpack1('m0')&.unpack1('H*')
+    end
+
+    # From https://github.com/rails/rails/blob/v5.2.1/activestorage/app/models/active_storage/blob.rb#L188
+    # but returns a hexdigest instead for OpenStack
+    def compute_checksum_in_chunks(io)
+      Digest::MD5.new.tap do |checksum|
+        while (chunk = io.read(5.megabytes))
+          checksum << chunk
+        end
+
+        io.rewind
+      end.hexdigest
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
