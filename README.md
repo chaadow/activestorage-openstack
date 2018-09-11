@@ -1,6 +1,7 @@
 # ActiveStorage::Openstack
 This rails plugin wraps the OpenStack Swift provider as an Active Storage service.
-It is a rewrite/refactor of [activestorage-openstack](https://github.com/jeffreyguenther/activestorage-openstack).
+
+Starting from version `0.4`, this gem enforces version `0.2.2` of `fog-openstack` which introduces breaking changes to the configuration keys in `config/storage.yml`. Please read the [MIGRATING from `0.1.x` to `0.2.x`](#migrating-from-fog-openstack-01x-to-02x) section
 
 ## Installation
 Add this line to your application's Gemfile:
@@ -44,6 +45,27 @@ For example, for the `dev_openstack` entry above, change the `config` variable i
 # Store uploaded files on the local file system (see config/storage.yml for options)
 config.active_storage.service = :dev_openstack
 ```
+
+## Migrating from fog-openstack `0.1.x` to `0.2.x`
+
+1- From your configuration file (`config/storage.yml`) change the `openstack_auth_uri` from :
+```yaml
+openstack_auth_url: https://auth.example.com/v2.0/tokens
+```
+to :
+```yaml
+openstack_auth_url: https://auth.example.com
+```
+==> **specifying the version in the `openstack_auth_url` key would break things**
+
+2- Second, specify the Keystone version (default is `v3.0`, however it is retro-compatible with v2.0 (So for now, adding this key won't affect the normal functioning of this gem, but is highly recommended)
+- *Additionally v2.0 is deprecated.*
+```yaml
+openstack_identity_api_version: v2.0
+```
+
+For further informations, please refer to [fog-openstack's README](https://github.com/fog/fog-openstack/)
+
 ## Setting up a container
 
 From your OpenStack provider website, create or sign in to your account.
