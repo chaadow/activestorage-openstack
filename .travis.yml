@@ -1,0 +1,8 @@
+language: ruby
+cache: bundler
+rvm:
+  - 2.5
+before_script:
+  - cp test/configurations.example.yml test/configurations.yml
+script:
+  - bin/test
