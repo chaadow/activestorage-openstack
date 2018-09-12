@@ -5,11 +5,8 @@ module ActiveStorage
     attr_reader :client, :container
 
     def initialize(container:, credentials:, connection_options: {})
-      settings = if connection_options.present?
-                   credentials.reverse_merge(connection_options: connection_options)
-                 else
-                   credentials
-                 end
+      settings = credentials.reverse_merge(connection_options: connection_options)
+
       @client = Fog::Storage::OpenStack.new(settings)
       @container = Fog::OpenStack.escape(container)
     end
@@ -139,10 +136,6 @@ module ActiveStorage
 
     def unix_timestamp_expires_at(seconds_from_now)
       Time.current.advance(seconds: seconds_from_now).to_i
-    end
-
-    def format_range(range)
-      " bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}"
     end
 
     def guess_content_type(io)

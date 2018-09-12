@@ -184,7 +184,13 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
-    def asset_metadata url, content_type: nil, content_length: nil, filename: nil, disposition: nil
+    test 'should not change content type of unknown key' do
+      key = SecureRandom.base58(24)
+
+      assert_not @service.change_content_type(key, "application/octet-stream")
+    end
+
+    def asset_metadata(url, content_type: nil, content_length: nil, filename: nil, disposition: nil)
       uri = URI.parse url
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         response = http.head uri.request_uri
