@@ -1,3 +1,10 @@
+require 'simplecov'
+require 'simplecov-console'
+SimpleCov.formatter = SimpleCov::Formatter::Console
+SimpleCov.start do
+  add_filter "/test/dummy/"
+  add_filter "lib/active_storage/openstack/railtie"
+end
 # Configure Rails Environment
 ENV["RAILS_ENV"] = "test"
 
