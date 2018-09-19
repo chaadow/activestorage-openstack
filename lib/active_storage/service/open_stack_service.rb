@@ -50,9 +50,11 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key: key do
-        client.delete_object(container, key)
-      rescue Fog::Storage::OpenStack::NotFound
-        false
+        begin
+          client.delete_object(container, key)
+        rescue Fog::Storage::OpenStack::NotFound
+          false
+        end
       end
     end
 
@@ -68,10 +70,12 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        answer = object_for(key)
-        payload[:exist] = answer.present?
-      rescue Fog::Storage::OpenStack::NotFound
-        payload[:exist] = false
+        begin
+          answer = object_for(key)
+          payload[:exist] = answer.present?
+        rescue Fog::Storage::OpenStack::NotFound
+          payload[:exist] = false
+        end
       end
     end
 
@@ -131,7 +135,7 @@ module ActiveStorage
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
     # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
-      base64digest&.unpack1('m0')&.unpack1('H*')
+      base64digest.unpack('m0').first.unpack('H*').first
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
