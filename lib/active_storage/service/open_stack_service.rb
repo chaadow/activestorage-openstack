@@ -7,7 +7,13 @@ module ActiveStorage
     def initialize(container:, credentials:, connection_options: {})
       settings = credentials.reverse_merge(connection_options: connection_options)
 
-      @client = Fog::OpenStack::Storage.new(settings)
+      fog_openstack_storage_class = if defined?(Fog::OpenStack::Storage)
+        Fog::OpenStack::Storage
+      else
+        Fog::Storage::OpenStack
+      end
+
+      @client = fog_openstack_storage_class.new(settings)
       @container = Fog::OpenStack.escape(container)
     end
 
