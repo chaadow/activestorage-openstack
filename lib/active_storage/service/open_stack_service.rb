@@ -11,7 +11,7 @@ module ActiveStorage
       @container = Fog::OpenStack.escape(container)
     end
 
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, **)
       instrument :upload, key: key, checksum: checksum do
         params = { 'Content-Type' => guess_content_type(io) }
         params['ETag'] = convert_base64digest_to_hexdigest(checksum) if checksum
