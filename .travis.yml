@@ -13,6 +13,6 @@ before_script:
 - "./cc-test-reporter before-build"
 - cp test/configurations.example.yml test/configurations.yml
 script:
-- bin/test
+- bin/test OPENSTACK_AUTH_URL=http://localhost:5000
 after_script:
 - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
