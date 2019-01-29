@@ -6,13 +6,15 @@ This rails plugin wraps the OpenStack Swift provider as an Active Storage servic
 [![Maintainability](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/maintainability)](https://codeclimate.com/github/chaadow/activestorage-openstack/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/test_coverage)](https://codeclimate.com/github/chaadow/activestorage-openstack/test_coverage)
 
+
+# PLEASE USE VERSION 0.4.1 OF THE GEM
 Starting from version `0.4`, this gem enforces version `0.2.2` of `fog-openstack` which introduces breaking changes to the configuration keys in `config/storage.yml`. Please read the [MIGRATING from `0.1.x` to `0.2.x`](#migrating-from-fog-openstack-01x-to-02x) section
 
 ## Installation
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'activestorage-openstack'
+gem 'activestorage-openstack', '0.4.1'
 ```
 
 And then execute:
