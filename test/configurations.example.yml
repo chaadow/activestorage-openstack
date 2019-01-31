@@ -7,5 +7,7 @@ openstack:
     openstack_auth_url: <%= ENV['OPENSTACK_AUTH_URL'] %>
     openstack_region: <%= ENV['OPENSTACK_REGION'] %>
     openstack_temp_url_key: <%= ENV['OPENSTACK_TEMP_URL_KEY'] %>
+  options:
+    delete_prefixed_bulk: true
   connection_options:
     chunk_size: 2097152 # 2MBs - Default 1MB

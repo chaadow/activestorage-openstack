@@ -39,6 +39,8 @@ dev_openstack:
     openstack_api_key: <password>
     openstack_region: <region>
     openstack_temp_url_key: <temp url key> # Mandatory, instructions below
+  options: # optional
+    delete_prefixed_bulk: false # true by default
   connection_options: # optional
     chunk_size: 2097152 # 2MBs - 1MB is the default
 ```

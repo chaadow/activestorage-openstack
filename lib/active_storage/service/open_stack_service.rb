@@ -2,13 +2,18 @@ require 'fog/openstack'
 
 module ActiveStorage
   class Service::OpenStackService < Service
-    attr_reader :client, :container
+    attr_reader :client, :container, :options
 
-    def initialize(container:, credentials:, connection_options: {})
+    DEFAULT_OPTIONS = {
+      delete_prefixed_bulk: true
+    }.freeze
+
+    def initialize(container:, credentials:, options: {}, connection_options: {})
       settings = credentials.reverse_merge(connection_options: connection_options)
 
-      @client = Fog::OpenStack::Storage.new(settings)
+      @client    = Fog::OpenStack::Storage.new(settings)
       @container = Fog::OpenStack.escape(container)
+      @options   = Fog::Service.coerce_options(options).reverse_merge(DEFAULT_OPTIONS)
     end
 
     def upload(key, io, checksum: nil)
@@ -64,7 +69,13 @@ module ActiveStorage
         filtered_files = client.files(directory: directory, prefix: prefix)
         filtered_files = filtered_files.map(&:key)
 
-        client.delete_multiple_objects(container, filtered_files)
+        return unless filtered_files.present?
+
+        if @options[:delete_prefixed_bulk]
+          client.delete_multiple_objects(container, filtered_files)
+        else
+          filtered_files.each(&method(:delete))
+        end
       end
     end
 
