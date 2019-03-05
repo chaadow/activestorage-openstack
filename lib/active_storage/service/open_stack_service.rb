@@ -135,7 +135,7 @@ module ActiveStorage
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
     # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
-      base64digest.unpack('m0').first.unpack('H*').first
+      base64digest.unpack1('m0').unpack1('H*')
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
