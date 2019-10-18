@@ -48,15 +48,37 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
+    test "uploading with integrity and multiple keys" do
+      key  = SecureRandom.base58(24)
+      data = "Something else entirely!"
+      @service.upload(
+        key,
+        StringIO.new(data),
+        checksum: Digest::MD5.base64digest(data),
+        filename: "racecar.jpg",
+        content_type: "image/jpg"
+      )
+
+      assert_equal data, @service.download(key)
+    ensure
+      @service.delete key
+    end
+
     test "downloading" do
       assert_equal FIXTURE_DATA, @service.download(FIXTURE_KEY)
+    end
+
+    test "downloading a nonexistent file" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download(SecureRandom.base58(24))
+      end
     end
 
     test "correct metadata" do
       url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
                            disposition: :inline,
                            filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
-      asset_metadata url, content_type: "image/png", content_length: FIXTURE_DATA.bytesize, filename: "avatar.png", disposition: "inline"
+      assert_metadata url, content_type: "image/png", content_length: FIXTURE_DATA.bytesize, filename: "avatar.png", disposition: "inline"
     end
 
     test "downloading in chunks" do
@@ -78,9 +100,21 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
+    test "downloading a nonexistent file in chunks" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download(SecureRandom.base58(24)) { }
+      end
+    end
+
     test "downloading partially" do
       assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19..21)
       assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19...22)
+    end
+
+    test "partially downloading a nonexistent file" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download_chunk(SecureRandom.base58(24), 19..21)
+      end
     end
 
     test "signed URL generation" do
@@ -105,9 +139,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
                                              content_length: data.bytesize,
                                              checksum: checksum)
         headers = @service.headers_for_direct_upload(key,
-                                                     filename: ActiveStorage::Filename.new("something.txt"),
                                                      content_type: "text/plain",
-                                                     content_length: data.bytesize,
                                                      checksum: checksum)
 
         uri = URI.parse url
@@ -126,7 +158,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
         url = @service.url(key, expires_in: 5.minutes,
                                 disposition: :attachment,
                                 filename: ActiveStorage::Filename.new("something.txt"), content_type: "text/plain")
-        asset_metadata url, content_type: "text/plain", content_length: data.bytesize, filename: "something.txt", disposition: "attachment"
+        assert_metadata url, content_type: "text/plain", content_length: data.bytesize, filename: "something.txt", disposition: "attachment"
       ensure
         @service.delete key
       end
@@ -143,7 +175,9 @@ if SERVICE_CONFIGURATIONS[:openstack]
     end
 
     test "deleting nonexistent key" do
-      assert_not @service.delete SecureRandom.base58(24)
+      assert_nothing_raised do
+        @service.delete SecureRandom.base58(24)
+      end
     end
 
     test "deleting by prefix" do
@@ -173,12 +207,12 @@ if SERVICE_CONFIGURATIONS[:openstack]
         url = @service.url(key, expires_in: 5.minutes,
                                 disposition: :attachment,
                                 filename: ActiveStorage::Filename.new("something.txt"))
-        asset_metadata url, content_type: "text/plain"
+        assert_metadata url, content_type: "text/plain"
         @service.change_content_type(key, "application/octet-stream")
         url = @service.url(key, expires_in: 5.minutes,
                                 disposition: :attachment,
                                 filename: ActiveStorage::Filename.new("something.txt"))
-        asset_metadata url, content_type: "application/octet-stream"
+        assert_metadata url, content_type: "application/octet-stream"
       ensure
         @service.delete(key)
       end
@@ -187,10 +221,12 @@ if SERVICE_CONFIGURATIONS[:openstack]
     test 'should not change content type of unknown key' do
       key = SecureRandom.base58(24)
 
-      assert_not @service.change_content_type(key, "application/octet-stream")
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.change_content_type(key, "application/octet-stream")
+      end
     end
 
-    def asset_metadata(url, content_type: nil, content_length: nil, filename: nil, disposition: nil)
+    def assert_metadata(url, content_type: nil, content_length: nil, filename: nil, disposition: nil)
       uri = URI.parse url
       Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
         response = http.head uri.request_uri

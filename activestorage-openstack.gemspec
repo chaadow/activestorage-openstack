@@ -15,15 +15,15 @@ Gem::Specification.new do |s|
   s.description = "Wraps the OpenStack Swift/Storage service as an Active Storage service"
   s.license     = "MIT"
 
-  s.required_ruby_version     = ">= 2.2.2"
+  s.required_ruby_version     = ">= 2.5.0"
   s.required_rubygems_version = ">= 1.8.11"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
 
-  s.add_dependency "fog-openstack", '~> 0.3'
+  s.add_dependency "fog-openstack", '~> 1.0'
   s.add_dependency "marcel"
   s.add_dependency "mime-types"
-  s.add_dependency "rails", "~> 5.2.0"
+  s.add_dependency "rails", "<= 6"
 
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "simplecov"
