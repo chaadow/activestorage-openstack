@@ -11,7 +11,7 @@ module ActiveStorage
       @container = Fog::OpenStack.escape(container)
     end
 
-    def upload(key, io, checksum: nil)
+    def upload(key, io, checksum: nil, **)
       instrument :upload, key: key, checksum: checksum do
         params = { 'Content-Type' => guess_content_type(io) }
         params['ETag'] = convert_base64digest_to_hexdigest(checksum) if checksum
@@ -34,6 +34,8 @@ module ActiveStorage
           object_for(key).body
         end
       end
+    rescue Fog::OpenStack::Storage::NotFound
+      raise ActiveStorage::FileNotFoundError
     end
 
     def download_chunk(key, range)
@@ -45,9 +47,10 @@ module ActiveStorage
         end
 
         chunk_buffer.join[range]
+      rescue Fog::OpenStack::Storage::NotFound
+        raise ActiveStorage::FileNotFoundError
       end
     end
-
     def delete(key)
       instrument :delete, key: key do
         begin
@@ -82,9 +85,14 @@ module ActiveStorage
     def url(key, expires_in:, disposition:, filename:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
-        generated_url = client.get_object_https_url(container, key, expire_at)
+        generated_url =
+          client.get_object_https_url(
+            container,
+            key,
+            expire_at,
+            filename: filename
+        )
         generated_url += '&inline' if disposition.to_s != 'attachment'
-        generated_url += "&filename=#{Fog::OpenStack.escape(filename.to_s)}" unless filename.nil?
         # unfortunately OpenStack Swift cannot overwrite the content type of an object via a temp url
         # so we just ignore the content_type argument here
         payload[:url] = generated_url
@@ -123,7 +131,7 @@ module ActiveStorage
                          'Content-Type' => content_type)
       true
     rescue Fog::OpenStack::Storage::NotFound
-      false
+      raise ActiveStorage::FileNotFoundError
     end
 
   private
