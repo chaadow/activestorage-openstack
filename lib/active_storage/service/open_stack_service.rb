@@ -35,7 +35,7 @@ module ActiveStorage
         end
       end
     rescue Fog::OpenStack::Storage::NotFound
-      raise ActiveStorage::FileNotFoundError
+      raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
     end
 
     def download_chunk(key, range)
@@ -48,7 +48,7 @@ module ActiveStorage
 
         chunk_buffer.join[range]
       rescue Fog::OpenStack::Storage::NotFound
-        raise ActiveStorage::FileNotFoundError
+        raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
       end
     end
     def delete(key)
@@ -131,7 +131,7 @@ module ActiveStorage
                          'Content-Type' => content_type)
       true
     rescue Fog::OpenStack::Storage::NotFound
-      raise ActiveStorage::FileNotFoundError
+      raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
     end
 
   private
