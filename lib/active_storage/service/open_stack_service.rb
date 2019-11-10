@@ -82,25 +82,6 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, **)
-      instrument :url, key: key do |payload|
-        expire_at = unix_timestamp_expires_at(expires_in)
-        generated_url =
-          client.get_object_https_url(
-            container,
-            key,
-            expire_at,
-            filename: filename
-        )
-        generated_url += '&inline' if disposition.to_s != 'attachment'
-        # unfortunately OpenStack Swift cannot overwrite the content type of an object via a temp url
-        # so we just ignore the content_type argument here
-        payload[:url] = generated_url
-
-        generated_url
-      end
-    end
-
     def url_for_direct_upload(key, expires_in:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
@@ -135,6 +116,23 @@ module ActiveStorage
     end
 
   private
+    def private_url(key, expires_in:, filename:, disposition:, content_type:, **)
+      expire_at = unix_timestamp_expires_at(expires_in)
+      generated_url = client.create_temp_url(container, key, expire_at, 'GET', filename: filename)
+      generated_url += '&inline' if disposition.to_s != 'attachment'
+      # unfortunately OpenStack Swift cannot overwrite the content type of an object via a temp url
+      # so we just ignore the content_type argument here
+
+      generated_url
+    end
+
+    def public_url(key, **options)
+      uri = URI.parse(private_url(key, **options))
+      uri.query = uri.query.sub(/(^|&)temp_url_sig=.+?(&|$)/, '')
+                           .sub(/(^|&)temp_url_expires=.+?(&|$)/, '')
+
+      uri.to_s
+    end
 
     def object_for(key, &block)
       client.get_object(container, key, &block)
