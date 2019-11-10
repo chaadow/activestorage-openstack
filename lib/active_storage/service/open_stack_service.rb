@@ -82,6 +82,19 @@ module ActiveStorage
       end
     end
 
+    def url(key, **options)
+      if ActiveStorage.version < Gem::Version.new('6.1-alpha')
+        instrument :url, key: key do |payload|
+          generated_url = private_url(key, **options)
+          payload[:url] = generated_url
+
+          generated_url
+        end
+      else
+        super
+      end
+    end
+  
     def url_for_direct_upload(key, expires_in:, **)
       instrument :url, key: key do |payload|
         expire_at = unix_timestamp_expires_at(expires_in)
