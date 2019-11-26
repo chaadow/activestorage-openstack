@@ -23,7 +23,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
         key  = SecureRandom.base58(24)
         data = "Some random string!"
 
-        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data), disposition: 'attachment', filename: ActiveStorage::Filename.new("avatar.png"), content_type: 'image/png')
 
         assert_equal data, @service.download(key)
       ensure
@@ -199,20 +199,23 @@ if SERVICE_CONFIGURATIONS[:openstack]
       end
     end
 
-    test "change_content_type" do
+    test "should update metadata/content_type" do
       key = SecureRandom.base58(24)
       begin
         @service.upload(key, StringIO.new(FIXTURE_DATA))
-        @service.change_content_type(key, "text/plain")
+        @service.update_metadata(key, content_type: "text/plain")
         url = @service.url(key, expires_in: 5.minutes,
                                 disposition: :attachment,
                                 filename: ActiveStorage::Filename.new("something.txt"))
         assert_metadata url, content_type: "text/plain"
-        @service.change_content_type(key, "application/octet-stream")
+        @service.update_metadata(key, content_type: "application/octet-stream", filename: 'new_name.txt', disposition: 'attachment')
         url = @service.url(key, expires_in: 5.minutes,
                                 disposition: :attachment,
-                                filename: ActiveStorage::Filename.new("something.txt"))
-        assert_metadata url, content_type: "application/octet-stream"
+                                filename: ActiveStorage::Filename.new("new_name.txt"))
+        assert_metadata url,
+          content_type: "application/octet-stream",
+          filename: ActiveStorage::Filename.new("new_name.txt"),
+          disposition: 'attachment'
       ensure
         @service.delete(key)
       end
@@ -222,7 +225,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
       key = SecureRandom.base58(24)
 
       assert_raises(ActiveStorage::FileNotFoundError) do
-        @service.change_content_type(key, "application/octet-stream")
+        @service.update_metadata(key, content_type:"application/octet-stream")
       end
     end
 
@@ -232,11 +235,8 @@ if SERVICE_CONFIGURATIONS[:openstack]
         response = http.head uri.request_uri
         assert_equal content_type.to_s, response['content-type'] unless content_type.nil?
         assert_equal content_length.to_s, response['content-length'] unless content_length.nil?
-
-        if response['content-disposition']
-          assert_match filename.to_s, response['content-disposition'] unless filename.nil?
-          assert_match disposition.to_s, response['content-disposition'] unless disposition.nil?
-        end
+        assert_match filename.to_s, response['content-disposition'] unless filename.nil?
+        assert_match disposition.to_s, response['content-disposition'] unless disposition.nil?
       end
     end
   end
