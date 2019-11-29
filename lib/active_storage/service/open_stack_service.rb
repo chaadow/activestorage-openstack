@@ -139,12 +139,8 @@ module ActiveStorage
       generated_url
     end
 
-    def public_url(key, **options)
-      uri = URI.parse(private_url(key, **options))
-      uri.query = uri.query.sub(/(^|&)temp_url_sig=.+?(&|$)/, '')
-                           .sub(/(^|&)temp_url_expires=.+?(&|$)/, '')
-
-      uri.to_s
+    def public_url(key, **)
+      client.public_url(container, key)
     end
 
     def object_for(key, &block)
