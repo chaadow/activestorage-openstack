@@ -13,7 +13,7 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil, disposition: nil, content_type: nil, filename: nil, **)
       instrument :upload, key: key, checksum: checksum do
-        params = { 'Content-Type' => content_type || guess_content_type(io) }
+        params = { 'Content-Type' => content_type }
         params['ETag'] = convert_base64digest_to_hexdigest(checksum) if checksum
         if disposition && filename
           params['Content-Disposition'] =
@@ -155,12 +155,6 @@ module ActiveStorage
 
     def unix_timestamp_expires_at(seconds_from_now)
       Time.current.advance(seconds: seconds_from_now).to_i
-    end
-
-    def guess_content_type(io)
-      Marcel::MimeType.for io,
-                           name: io.try(:original_filename),
-                           declared_type: io.try(:content_type)
     end
   end
 end
