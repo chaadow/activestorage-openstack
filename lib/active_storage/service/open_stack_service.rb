@@ -11,10 +11,14 @@ module ActiveStorage
       @container = Fog::OpenStack.escape(container)
     end
 
-    def upload(key, io, checksum: nil, **)
+    def upload(key, io, checksum: nil, disposition: nil, content_type: nil, filename: nil, **)
       instrument :upload, key: key, checksum: checksum do
-        params = { 'Content-Type' => guess_content_type(io) }
+        params = { 'Content-Type' => content_type || guess_content_type(io) }
         params['ETag'] = convert_base64digest_to_hexdigest(checksum) if checksum
+        if disposition && filename
+          params['Content-Disposition'] =
+            content_disposition_with(type: disposition, filename: filename)
+        end
 
         begin
           client.put_object(container, key, io, params)
@@ -51,13 +55,12 @@ module ActiveStorage
         raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
       end
     end
+
     def delete(key)
       instrument :delete, key: key do
-        begin
-          client.delete_object(container, key)
-        rescue Fog::OpenStack::Storage::NotFound
-          false
-        end
+        client.delete_object(container, key)
+      rescue Fog::OpenStack::Storage::NotFound
+        false
       end
     end
 
@@ -73,12 +76,10 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        begin
-          answer = object_for(key)
-          payload[:exist] = answer.present?
-        rescue Fog::OpenStack::Storage::NotFound
-          payload[:exist] = false
-        end
+        answer = object_for(key)
+        payload[:exist] = answer.present?
+      rescue Fog::OpenStack::Storage::NotFound
+        payload[:exist] = false
       end
     end
 
@@ -118,14 +119,20 @@ module ActiveStorage
       }
     end
 
-    # Non-standard method to change the content type of an existing object
-    def change_content_type(key, content_type)
-      client.post_object(container,
-                         key,
-                         'Content-Type' => content_type)
-      true
-    rescue Fog::OpenStack::Storage::NotFound
-      raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
+    def update_metadata(key, content_type:, disposition: nil, filename: nil, **)
+      instrument :update_metadata, key: key, content_type: content_type, disposition: disposition do
+        params = { 'Content-Type' => content_type }
+        if disposition && filename
+          params['Content-Disposition'] =
+            content_disposition_with(type: disposition, filename: ActiveStorage::Filename.new(filename))
+        end
+        client.post_object(container,
+                           key,
+                           params)
+        true
+      rescue Fog::OpenStack::Storage::NotFound
+        raise ActiveStorage::FileNotFoundError if defined?(ActiveStorage::FileNotFoundError)
+      end
     end
 
   private
@@ -150,7 +157,7 @@ module ActiveStorage
     # ActiveStorage sends a `Digest::MD5.base64digest` checksum
     # OpenStack expects a `Digest::MD5.hexdigest` ETag
     def convert_base64digest_to_hexdigest(base64digest)
-      base64digest.unpack('m0').first.unpack('H*').first
+      base64digest.unpack1('m0').unpack1('H*')
     end
 
     def unix_timestamp_expires_at(seconds_from_now)
