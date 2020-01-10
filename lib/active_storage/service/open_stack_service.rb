@@ -4,11 +4,12 @@ module ActiveStorage
   class Service::OpenStackService < Service
     attr_reader :client, :container
 
-    def initialize(container:, credentials:, connection_options: {})
+    def initialize(container:, credentials:, public: false, connection_options: {})
       settings = credentials.reverse_merge(connection_options: connection_options)
 
       @client = Fog::OpenStack::Storage.new(settings)
       @container = Fog::OpenStack.escape(container)
+      @public = public
     end
 
     def upload(key, io, checksum: nil, disposition: nil, content_type: nil, filename: nil, **)
