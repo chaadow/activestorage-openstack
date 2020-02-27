@@ -130,7 +130,7 @@ module ActiveStorage
         params = { 'Content-Type' => content_type }
         if disposition && filename
           params['Content-Disposition'] =
-            content_disposition_with(type: disposition, filename: ActiveStorage::Filename.new(filename))
+            content_disposition_with(type: disposition, filename: ActiveStorage::Filename.wrap(filename))
         end
         client.post_object(container,
                            key,
