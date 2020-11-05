@@ -76,7 +76,7 @@ module ActiveStorage
 
     def exist?(key)
       instrument :exist, key: key do |payload|
-        answer = object_for(key)
+        answer = head_for(key)
         payload[:exist] = answer.present?
       rescue Fog::OpenStack::Storage::NotFound
         payload[:exist] = false
@@ -142,6 +142,10 @@ module ActiveStorage
     end
 
   private
+
+    def head_for(key)
+      client.head_object(container, key)
+    end
 
     def object_for(key, &block)
       client.get_object(container, key, &block)
