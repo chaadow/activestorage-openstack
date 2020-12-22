@@ -22,9 +22,9 @@ Gem::Specification.new do |s|
 
   s.add_dependency "fog-openstack", '~> 1.0'
   s.add_dependency "marcel"
-  s.add_dependency "mime-types"
   s.add_dependency "rails", ">= 5.2.2"
 
+  s.add_development_dependency "appraisal"
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "simplecov"
   s.add_development_dependency "simplecov-console"
