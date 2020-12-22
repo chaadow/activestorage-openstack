@@ -1,5 +1,16 @@
 # activestorage-openstack changelog
 
+## 1.5.0 (2020-12-22)
+- Add support for rails 6.1
+ - Add public/private url support ( Co-Authored with @jplot )
+ - Add more test coverage for new API/behaviour
+- Update `#url_for_direct_upload` to accept `filename:` as allowed by
+  `fog-openstack` libray
+- Add appraisal to handle multiple rails versions including rails master
+- Rubocop fixes
+- Update README with rails 6.1 config examples
+- Code cleaning
+
 ## 1.4.2 (2020-11-11)
 - Optimize `#exists?` checks to request the head of the file instead of
   requesting the entire file

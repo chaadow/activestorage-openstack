@@ -10,8 +10,8 @@ ENV["RAILS_ENV"] = "test"
 
 require_relative "../test/dummy/config/environment"
 ActiveRecord::Migrator.migrations_paths = [File.expand_path("../test/dummy/db/migrate", __dir__)]
-require "rails/test_help"
 
+require "rails/test_help"
 # Filter out Minitest backtrace while allowing backtrace from other libraries
 # to be shown.
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
@@ -27,8 +27,17 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
-require 'yaml'
+class ActiveSupport::TestCase
+  def self.at_least_rails61?
+      ActiveStorage.version >= Gem::Version.new('6.1-alpha')
+  end
 
+  def at_least_rails61?
+    self.class.at_least_rails61?
+  end
+end
+
+require 'yaml'
 SERVICE_CONFIGURATIONS = begin
   erb = ERB.new(Pathname.new(File.expand_path("configurations.yml", __dir__)).read)
   configuration = YAML.load(erb.result) || {}

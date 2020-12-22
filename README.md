@@ -5,8 +5,6 @@ This rails plugin wraps the OpenStack Swift provider as an Active Storage servic
 [![Build Status](https://travis-ci.com/chaadow/activestorage-openstack.svg?branch=master)](https://travis-ci.com/chaadow/activestorage-openstack)
 [![Maintainability](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/maintainability)](https://codeclimate.com/github/chaadow/activestorage-openstack/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/test_coverage)](https://codeclimate.com/github/chaadow/activestorage-openstack/test_coverage)
-
-
 Starting from version `0.4`, this gem enforces version `>= 0.2.2` of `fog-openstack` which introduces breaking changes to the configuration keys in `config/storage.yml`. Please read the [MIGRATING from `0.1.x` to `0.2.x`](#migrating-from-fog-openstack-01x-to-02x) section
 
 **This gem currently supports `fog-openstack` version `~ 1.0`**
@@ -29,11 +27,15 @@ $ gem install activestorage-openstack
 ```
 
 ## Usage
-in `config/storage.yml`, in your Rails app, create an entry with the following keys:
+in `config/storage.yml`, in your Rails app, you can create as many entries as
+you wish. Here is an example with rails 6.1 new support for public containers
+
 ```yaml
-dev_openstack:
+
+# Here you can have the common authentication credentials and config
+# by defining a YAML anchor
+default_config: &default_config
   service: OpenStack
-  container: <container name> # Container name for your OpenStack provider
   credentials:
     openstack_auth_url: <auth url>
     openstack_username: <username>
@@ -42,19 +44,32 @@ dev_openstack:
     openstack_temp_url_key: <temp url key> # Mandatory, instructions below
   connection_options: # optional
     chunk_size: 2097152 # 2MBs - 1MB is the default
+
+# starting from rails 6.1, you can have a public container generating public
+# URLs
+public_openstack:
+  <<: *default_config # we include the anchor defined above
+  public: true # important ; to tell rails that this is a public container
+  container: <container name> # Container name for your public OpenStack provider
+
+# this config will generate signed/expired URLs (aka. private URLs)
+private_openstack:
+  <<: *default_config # we include the anchor defined above
+  public: false # Optional in this case, because false is the default value
+  container: <container name> # Container name for your private OpenStack provider
 ```
 
-You can create as many entries as you would like for your different environments. For instance: `dev_openstack` for development, `test_openstack` for test environment, and `prod_openstack` for production. This way you can choose the appropriate container for each scenario.
+You can create as many entries as you would like for your different environments. For instance: `public_openstack` for development, `test_openstack` for test environment, and `prod_openstack` for production. This way you can choose the appropriate container for each scenario.
 
 Then register the provider in your `config/{environment}.rb` (`config/development.rb`/`config/test.rb`/`config/production.rb`)
 
-For example, for the `dev_openstack` entry above, change the `config` variable in `config/development.rb` like the following:
+For example, for the `public_openstack` entry above, change the `config` variable in `config/development.rb` like the following:
 ```ruby
 # Store uploaded files on the local file system (see config/storage.yml for options)
-config.active_storage.service = :dev_openstack
+config.active_storage.service = :public_openstack
 ```
 
-## Migrating from fog-openstack `0.1.x` to `0.2.x`
+## Migrating from fog-openstack `~> 0.1.x` to `>= 0.2.x`
 
 1- From your configuration file (`config/storage.yml`) change the `openstack_auth_uri` from :
 ```yaml
@@ -89,9 +104,16 @@ The next version of this plugin, will add a rails generator, or expose a method 
 
 ## `ActiveStorage::Openstack`'s Content-Type handling
 
-OpenStack Swift handles the Content-Type of an object differently from other object storage services. You cannot overwrite the Content-Type via a temp URL. This gem will try very hard to set the right Content-Type for an object at object creation (either via server upload or direct upload) but this is wrong in some edge cases (e.g. you use direct upload and the browser provides a wrong mime type).
-
-For these edge cases `ActiveStorage::Blob::Identifiable` downloads the first 4K of a file, identifies the content type and saves the result in the database. For `ActiveStorage::Openstack` we also need to update the Content-Type of the object. This is done automatically with a little monkey patch.
+OpenStack Swift handles the Content-Type of an object differently from other
+object storage services.
+You cannot overwrite the Content-Type via a temp URL. This gem will try very
+hard to set the right Content-Type for an object at
+object creation (either via server upload or direct upload) but this can be
+wrong in some edge cases (e.g. you use direct upload and the browser provides
+a wrong mime type).
+Thankfully, by implementing the rails hook `#update_metadata`
+this will update the object in your container by setting the new content type
+after it's been uploaded.
 
 ## Testing
 First, run `bundle` to install the gem dependencies (both development and production)
