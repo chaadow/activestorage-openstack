@@ -101,7 +101,7 @@ module ActiveStorage
         end
       end
 
-      def url_for_direct_upload(key, expires_in:, filename:, **)
+      def url_for_direct_upload(key, expires_in:, filename: nil, **)
         instrument :url, key: key do |payload|
           expire_at = unix_timestamp_expires_at(expires_in)
           generated_url = client.create_temp_url(
@@ -110,7 +110,7 @@ module ActiveStorage
             expire_at,
             'PUT',
             port: 443,
-            filename: ActiveStorage::Filename.wrap(filename).sanitized.to_s,
+            **(filename ? { filename: ActiveStorage::Filename.wrap(filename).to_s } : {}),
             scheme: 'https'
           )
 

@@ -1,5 +1,8 @@
 # activestorage-openstack changelog
 
+## 1.5.1 (2020-12-24)
+- Fix `#headers_for_direct_upload` to make `:filename` an optional kwarg
+
 ## 1.5.0 (2020-12-22)
 - Add support for rails 6.1
  - Add public/private url support ( Co-Authored with @jplot )
