@@ -6,14 +6,13 @@ module ActiveStorage
   class Service
     # ActiveStorage provider for OpenStack
     class OpenStackService < Service
-      attr_reader :client, :container
+      attr_reader :settings, :container
 
       def initialize(container:, credentials:, public: false, connection_options: {})
         super()
-        settings = credentials.reverse_merge(connection_options: connection_options)
+        @settings = credentials.reverse_merge(connection_options: connection_options)
 
         @public = public
-        @client = Fog::OpenStack::Storage.new(settings)
         @container = Fog::OpenStack.escape(container)
       end
 
@@ -145,6 +144,10 @@ module ActiveStorage
       end
 
       private
+
+      def client
+        @client ||= Fog::OpenStack::Storage.new(settings)
+      end
 
       def head_for(key)
         client.head_object(container, key)
