@@ -13,3 +13,4 @@ test/configurations.yml
 Gemfile.lock
 *gemfile.lock
 coverage
+.idea/
