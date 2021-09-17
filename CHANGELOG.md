@@ -1,5 +1,9 @@
 # activestorage-openstack changelog
 
+## 1.5.2 (2021-09-17)
+- Lazy client initialization prevents application crash at startup when
+  openstack service is unavailable. ( @arekk )
+
 ## 1.5.1 (2020-12-24)
 - Fix `#headers_for_direct_upload` to make `:filename` an optional kwarg
 
