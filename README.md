@@ -2,7 +2,6 @@
 [![Gem Version](https://badge.fury.io/rb/activestorage-openstack.svg)](https://badge.fury.io/rb/activestorage-openstack)
 ![Build](https://github.com/chaadow/activestorage-openstack/actions/workflows/ruby.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/maintainability)](https://codeclimate.com/github/chaadow/activestorage-openstack/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/test_coverage)](https://codeclimate.com/github/chaadow/activestorage-openstack/test_coverage)
 # ActiveStorage::Openstack
 This rails plugin wraps the OpenStack Swift provider as an Active Storage service. 
 
