@@ -23,7 +23,7 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['2.7', '3.0', '3.1']
-        activerecord: ['6_0', '6_1', 'master']
+        activerecord: ['6_0', '6_1', '7_0', 'master']
     env:
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_${{ matrix.activerecord }}.gemfile
     steps:
