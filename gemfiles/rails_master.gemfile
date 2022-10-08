@@ -3,5 +3,6 @@
 source "https://rubygems.org"
 
 gem "rails", branch: "main", git: "https://github.com/rails/rails.git"
+gem "fog-openstack", git: "https://github.com/chaadow/fog-openstack.git"
 
 gemspec path: "../"
