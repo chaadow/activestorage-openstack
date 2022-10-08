@@ -97,7 +97,7 @@ if SERVICE_CONFIGURATIONS[:openstack]
     test 'downloading in chunks' do
       key = SecureRandom.base58(24)
       # default for OpenStack is 1 megabyte
-      chunk_size = @service.client.instance_values['connection_options'][:chunk_size] || 1.megabyte
+      chunk_size = @service.send(:client).instance_values['connection_options'][:chunk_size] || 1.megabyte
       expected_chunks = ['a' * chunk_size, 'b']
       actual_chunks = []
 
