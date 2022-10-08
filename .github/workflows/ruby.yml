@@ -25,6 +25,13 @@ jobs:
         ruby-version: ['2.7', '3.0', '3.1']
         activerecord: ['6_0', '6_1', '7_0', 'master']
     env:
+      OPENSTACK_CONTAINER: ${{ secrets.OPENSTACK_CONTAINER }}
+      OPENSTACK_USERNAME: ${{ secrets.OPENSTACK_USERNAME }}
+      OPENSTACK_API_KEY: ${{ secrets.OPENSTACK_API_KEY }}
+      OPENSTACK_PROJECT_ID: ${{ secrets.OPENSTACK_PROJECT_ID }}
+      OPENSTACK_AUTH_URL: ${{ secrets.OPENSTACK_AUTH_URL }}
+      OPENSTACK_REGION: ${{ secrets.OPENSTACK_REGION }}
+      OPENSTACK_TEMP_URL_KEY: ${{ secrets.OPENSTACK_TEMP_URL_KEY }}
       BUNDLE_GEMFILE: ${{ github.workspace }}/gemfiles/rails_${{ matrix.activerecord }}.gemfile
     steps:
     - uses: actions/checkout@v3
