@@ -1,11 +1,14 @@
-# ActiveStorage::Openstack
-This rails plugin wraps the OpenStack Swift provider as an Active Storage service. It is now compatible with rails 6.
 
 [![Gem Version](https://badge.fury.io/rb/activestorage-openstack.svg)](https://badge.fury.io/rb/activestorage-openstack)
-[![Build Status](https://travis-ci.com/chaadow/activestorage-openstack.svg?branch=master)](https://travis-ci.com/chaadow/activestorage-openstack)
+![Build](https://github.com/chaadow/activestorage-openstack/actions/workflows/ruby.yml/badge.svg)
 [![Maintainability](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/maintainability)](https://codeclimate.com/github/chaadow/activestorage-openstack/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/4c070c101f86a579516f/test_coverage)](https://codeclimate.com/github/chaadow/activestorage-openstack/test_coverage)
-Starting from version `0.4`, this gem enforces version `>= 0.2.2` of `fog-openstack` which introduces breaking changes to the configuration keys in `config/storage.yml`. Please read the [MIGRATING from `0.1.x` to `0.2.x`](#migrating-from-fog-openstack-01x-to-02x) section
+# ActiveStorage::Openstack
+This rails plugin wraps the OpenStack Swift provider as an Active Storage service. 
+
+Compatible with rails `6.0.x`, `6.1.x`, `7.0.x` as well as `rails main branch` (edge).
+
+Compatible with ruby `2.5`, `2.6`, `2.7`, `3.0`, `3.1`.
 
 **This gem currently supports `fog-openstack` version `~ 1.0`**
 
@@ -68,26 +71,6 @@ For example, for the `public_openstack` entry above, change the `config` variabl
 # Store uploaded files on the local file system (see config/storage.yml for options)
 config.active_storage.service = :public_openstack
 ```
-
-## Migrating from fog-openstack `~> 0.1.x` to `>= 0.2.x`
-
-1- From your configuration file (`config/storage.yml`) change the `openstack_auth_uri` from :
-```yaml
-openstack_auth_url: https://auth.example.com/v2.0/tokens
-```
-to :
-```yaml
-openstack_auth_url: https://auth.example.com
-```
-==> **specifying the version in the `openstack_auth_url` key would break things**
-
-2- Second, specify the Keystone version (default is `v3.0`, however it is retro-compatible with v2.0 (So for now, adding this key won't affect the normal functioning of this gem, but is highly recommended)
-- *Additionally v2.0 is deprecated.*
-```yaml
-openstack_identity_api_version: v2.0
-```
-
-For further informations, please refer to [fog-openstack's README](https://github.com/fog/fog-openstack/)
 
 ## Setting up a container
 
