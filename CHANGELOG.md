@@ -1,5 +1,10 @@
 # activestorage-openstack changelog
 
+## 1.6.0 (2022-10-08)
+- Migrate from travis CI to github actions
+- Add support for rails 7 as well as ruby 2.7, 3.0 and 3.1
+- Add ruby 3 instructions and update README
+
 ## 1.5.2 (2021-09-17)
 - Lazy client initialization prevents application crash at startup when
   openstack service is unavailable. ( @arekk )
