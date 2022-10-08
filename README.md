@@ -13,20 +13,11 @@ Compatible with ruby `2.5`, `2.6`, `2.7`, `3.0`, `3.1`.
 **This gem currently supports `fog-openstack` version `~ 1.0`**
 
 ## Installation
-Add this line to your application's Gemfile:
+Add this line to your application's Gemfile ( Add the second line for ruby 3/3.1 support)
 
 ```ruby
 gem 'activestorage-openstack', '1.0'
-```
-
-And then execute:
-```bash
-$ bundle
-```
-
-Or install it yourself as:
-```bash
-$ gem install activestorage-openstack
+gem 'fog-openstack', github: 'chaadow/fog-openstack' # Temporary, for ruby 3 support, until the PR is merged and released
 ```
 
 ## Usage
