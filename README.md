@@ -5,9 +5,9 @@
 
 This rails plugin wraps the OpenStack Swift provider as an Active Storage service. 
 
-Compatible with rails `6.0.x`, `6.1.x`, `7.0.x` as well as `rails main branch` (edge).
+Compatible with rails `6.0.x`, `6.1.x`, `7.0.x`, `7.1.x` as well as `rails main branch` (edge).
 
-Compatible with ruby `2.5`, `2.6`, `2.7`, `3.0`, `3.1`.
+Compatible with ruby `2.5`, `2.6`, `2.7`, `3.0`, `3.1`, `3.2`.
 
 **This gem currently supports `fog-openstack` version `~ 1.0`**
 
