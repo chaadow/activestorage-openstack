@@ -9,4 +9,4 @@ openstack:
     openstack_region: <%= ENV['OPENSTACK_REGION'] %>
     openstack_temp_url_key: <%= ENV['OPENSTACK_TEMP_URL_KEY'] %>
   connection_options:
-    chunk_size: 2097152 # 2MBs - Default 1MB
+    chunk_size: 16 # 2MBs - Default 1MB
